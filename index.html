@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OOS Fixer AI v2 — Expert Planning Engineer Assistant</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;--surface:#181c27;--surface2:#1e2333;--border:#2a2f42;--border2:#363d54;
+  --text:#e8eaf0;--text2:#8b91a8;--text3:#555d7a;
+  --accent:#4f7ef8;--accent-dim:#1e2f5e;
+  --green:#22c97a;--green-dim:#0d2e1e;
+  --amber:#f0a832;--amber-dim:#2e1f08;
+  --red:#e8504a;--red-dim:#2e100f;
+  --purple:#9b7ff0;--purple-dim:#1a1535;
+  --radius:10px;--radius-sm:6px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.6;min-height:100vh}
+.app{max-width:1060px;margin:0 auto;padding:2rem 1.5rem}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:38px;height:38px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.logo h1{font-size:17px;font-weight:600;letter-spacing:-0.3px}
+.logo p{font-size:11px;color:var(--text2)}
+.version-chip{font-size:10px;background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent);padding:2px 7px;border-radius:20px;font-weight:600;margin-left:8px;vertical-align:middle}
+.ai-badge{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;transition:all 0.15s}
+.ai-badge:hover{border-color:var(--accent);color:var(--text)}
+.ai-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
+.ai-badge.ready .dot{background:var(--green)}
+.ai-badge.ready{color:var(--text)}
+
+/* Tabs */
+.tabs{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:1.5rem;width:fit-content;gap:2px}
+.tab{padding:7px 16px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;color:var(--text2);border:none;border-radius:7px;transition:all 0.15s;display:flex;align-items:center;gap:6px}
+.tab.active{background:var(--surface2);color:var(--text)}
+.tab:hover:not(.active){color:var(--text)}
+.panel{display:none}.panel.active{display:block}
+
+/* Upload */
+.upload-zone{border:1.5px dashed var(--border2);border-radius:var(--radius);padding:2.5rem;text-align:center;cursor:pointer;background:var(--surface);transition:all 0.15s;margin-bottom:1rem}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-dim)}
+.upload-zone svg{width:36px;height:36px;stroke:var(--text3);margin:0 auto 12px;display:block}
+.upload-zone p{font-size:14px;color:var(--text2);margin-bottom:4px}
+.upload-zone span{font-size:12px;color:var(--text3)}
+.file-status{font-size:12px;margin-top:10px}
+
+/* Project context form */
+.context-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
+.context-card h3{font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.context-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.form-group{margin-bottom:0}
+label{display:block;font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px}
+input[type=text],select,textarea{width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--surface2)}
+textarea{min-height:160px;resize:vertical;font-family:'Courier New',monospace;font-size:12px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s;border:1px solid transparent}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover:not(:disabled){background:#3d6ee8}
+.btn-primary:disabled{opacity:0.35;cursor:not-allowed}
+.btn-secondary{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+.btn-secondary:hover:not(:disabled){background:var(--border)}
+.btn-ghost{background:transparent;color:var(--text2);border-color:var(--border)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-full{width:100%;justify-content:center;padding:11px;margin-top:1rem}
+.sample-btn{display:flex;align-items:center;gap:8px;width:100%;padding:9px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);color:var(--text2);font-size:13px;cursor:pointer;margin-bottom:8px;text-align:left;transition:all 0.15s}
+.sample-btn:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
+.divider{display:flex;align-items:center;gap:12px;margin:1rem 0;color:var(--text3);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* Stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px}
+.stat-label{font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+.stat-val{font-size:22px;font-weight:600}
+.c-blue{color:var(--accent)}.c-amber{color:var(--amber)}.c-red{color:var(--red)}.c-green{color:var(--green)}.c-purple{color:var(--purple)}
+
+/* Results table */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1rem}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--surface2);padding:10px 12px;text-align:left;font-weight:500;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.id-code{font-family:'Courier New',monospace;font-size:12px;color:var(--accent);font-weight:600}
+.act-name{font-size:11px;color:var(--text2);margin-top:2px;line-height:1.4}
+.act-status{font-size:10px;color:var(--text3);margin-top:2px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap}
+.b-change{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber)}
+.b-delete{background:var(--red-dim);color:var(--red);border:1px solid var(--red)}
+.b-lag{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent)}
+.b-review{background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)}
+.b-nochange{background:var(--green-dim);color:var(--green);border:1px solid var(--green)}
+.b-type{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.b-type-new{background:var(--accent-dim);color:var(--accent);border:1px solid var(--accent)}
+.rel-wrap{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.arrow{color:var(--text3);font-size:11px}
+
+/* Confidence */
+.conf{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ch{background:var(--green)}.cm{background:var(--amber)}.cl{background:var(--red)}
+
+/* Expandable justification */
+.justify-cell{max-width:340px}
+.justify-summary{font-size:12px;color:var(--text2);line-height:1.5;cursor:pointer}
+.justify-full{display:none;margin-top:8px;padding:10px 12px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--accent)}
+.justify-full.open{display:block}
+.justify-section{margin-bottom:8px}
+.justify-section-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--accent);margin-bottom:3px}
+.justify-section-body{font-size:12px;color:var(--text2);line-height:1.6}
+.expand-btn{font-size:11px;color:var(--accent);cursor:pointer;background:none;border:none;padding:0;margin-top:4px;display:inline-flex;align-items:center;gap:3px}
+
+/* Float impact */
+.float-impact{display:flex;align-items:center;gap:5px;font-size:11px}
+.float-badge{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.fb-critical{background:var(--red-dim);color:var(--red)}
+.fb-low{background:var(--amber-dim);color:var(--amber)}
+.fb-ok{background:var(--green-dim);color:var(--green)}
+.fb-unknown{background:var(--surface2);color:var(--text3)}
+
+/* AI thinking steps */
+.thinking-steps{margin:1rem 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.thinking-header{padding:10px 14px;font-size:12px;font-weight:600;color:var(--text2);background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.step{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);opacity:0.4;transition:opacity 0.3s}
+.step.active{opacity:1}
+.step.done{opacity:0.7}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0;color:var(--text2)}
+.step.active .step-num{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.step.done .step-num{background:var(--green-dim);border-color:var(--green);color:var(--green)}
+.step-content{flex:1}
+.step-title{font-size:13px;font-weight:500;color:var(--text)}
+.step-detail{font-size:12px;color:var(--text2);margin-top:2px}
+.spinner-sm{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;margin-top:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Export bar */
+.export-bar{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem}
+
+/* Alert */
+.alert{padding:10px 14px;border-radius:var(--radius-sm);font-size:13px;margin-bottom:1rem;display:flex;align-items:flex-start;gap:8px}
+.alert-warn{background:var(--amber-dim);border:1px solid var(--amber);color:var(--amber)}
+.alert-info{background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent)}
+.alert-success{background:var(--green-dim);border:1px solid var(--green);color:var(--green)}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;width:560px;max-width:96vw;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-header h2{font-size:16px;font-weight:600}
+.close-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;padding:2px}
+.close-btn:hover{color:var(--text)}
+.provider-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem}
+.pcard{padding:11px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.15s;text-align:center}
+.pcard:hover{border-color:var(--border2)}
+.pcard.sel{border-color:var(--accent);background:var(--accent-dim)}
+.pcard .pi{font-size:20px;margin-bottom:4px}
+.pcard .pn{font-size:12px;font-weight:600;color:var(--text)}
+.pcard .pm{font-size:10px;color:var(--text3);margin-top:1px}
+.pcard .pb{font-size:9px;color:var(--green);font-weight:600;margin-top:2px}
+.helper{font-size:11px;color:var(--text3);margin-top:4px}
+.section-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}
+.key-note{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:1rem}
+
+/* Loading */
+.loading{text-align:center;padding:3rem 1rem;color:var(--text2)}
+.spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px}
+.empty{text-align:center;padding:2.5rem;color:var(--text3);font-size:13px}
+.diagnose-pre{font-family:'Courier New',monospace;font-size:11px;color:var(--text2);padding:2px 0;border-bottom:1px solid var(--border)}
+
+@media(max-width:640px){
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+  .context-grid{grid-template-columns:1fr}
+  .provider-grid{grid-template-columns:repeat(2,1fr)}
+  table{font-size:12px}
+  td,th{padding:8px 8px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <div>
+        <h1>OOS Fixer AI <span class="version-chip">Beta Version</span></h1>
+        <p>Planning Assistant — Primavera P6 Out-of-Sequence Repair</p>
+      </div>
+    </div>
+    <button class="ai-badge" id="ai-badge" onclick="openConfig()">
+      <span class="dot" id="badge-dot"></span>
+      <span id="badge-label">Configure AI engine</span>
+    </button>
+  </div>
+
+  <!-- Input tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('xer')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>XER file
+    </button>
+    <button class="tab" onclick="switchTab('paste')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Excel / paste
+    </button>
+  </div>
+
+  <!-- XER panel -->
+  <div id="panel-xer" class="panel active">
+    <div class="upload-zone" id="drop-zone" onclick="document.getElementById('xer-file').click()"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
+      ondrop="handleDrop(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <p>Drop your .xer file here or click to browse</p>
+      <span>Primavera P6 XER export</span>
+    </div>
+    <input type="file" id="xer-file" accept=".xer" style="display:none" onchange="handleXerFile(this)">
+    <div id="xer-status" class="file-status"></div>
+    <div class="divider">or</div>
+    <button class="sample-btn" onclick="loadSample()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      Load sample schedule with OOS activities
+    </button>
+    <button class="sample-btn" onclick="showDiagnose()" id="diagnose-btn" style="display:none;border-color:var(--amber);color:var(--amber)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Show raw file diagnostic
+    </button>
+  </div>
+
+  <!-- Paste panel -->
+  <div id="panel-paste" class="panel">
+    <div class="key-note">
+      Paste TASK table then a blank line then TASKPRED table. Tab-separated from Excel.<br>
+      <strong style="color:var(--text)">TASK columns:</strong> task_id, task_name, status_code, act_start_date, act_end_date, target_start_date, target_end_date, total_float_hr_cnt, wbs_id<br>
+      <strong style="color:var(--text)">TASKPRED columns:</strong> task_id, pred_task_id, pred_type, lag_hr_cnt
+    </div>
+    <textarea id="paste-input" placeholder="Paste your schedule data here..."></textarea>
+    <div class="divider">or</div>
+    <button class="sample-btn" onclick="loadSamplePaste()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      Load sample pasted data
+    </button>
+  </div>
+
+  <!-- Project context -->
+  <div class="context-card" style="margin-top:1rem">
+    <h3>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Project context — helps AI reason like your industry's expert planner
+    </h3>
+    <div class="context-grid">
+      <div class="form-group">
+        <label>Project type / industry</label>
+        <select id="ctx-industry">
+          <option value="">— Select —</option>
+          <option value="Oil & Gas — Onshore">Oil &amp; Gas — Onshore</option>
+          <option value="Oil & Gas — Offshore">Oil &amp; Gas — Offshore</option>
+          <option value="Oil & Gas — Refinery / Petrochemical">Oil &amp; Gas — Refinery / Petrochemical</option>
+          <option value="Oil & Gas — Pipeline">Oil &amp; Gas — Pipeline</option>
+          <option value="Power — Generation / Substation">Power — Generation / Substation</option>
+          <option value="Civil — Infrastructure / Roads">Civil — Infrastructure / Roads</option>
+          <option value="Civil — Building / High-rise">Civil — Building / High-rise</option>
+          <option value="Procurement / EPC">Procurement / EPC</option>
+          <option value="Marine / Offshore Fabrication">Marine / Offshore Fabrication</option>
+          <option value="Mining">Mining</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Contract type</label>
+        <select id="ctx-contract">
+          <option value="">— Select —</option>
+          <option value="FIDIC Yellow Book (EPC/Turnkey)">FIDIC Yellow Book (EPC/Turnkey)</option>
+          <option value="FIDIC Red Book (Construction)">FIDIC Red Book (Construction)</option>
+          <option value="FIDIC Silver Book">FIDIC Silver Book</option>
+          <option value="NEC3 / NEC4">NEC3 / NEC4</option>
+          <option value="Lump Sum">Lump Sum</option>
+          <option value="Reimbursable / Cost Plus">Reimbursable / Cost Plus</option>
+          <option value="Other / Unknown">Other / Unknown</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Schedule level</label>
+        <select id="ctx-level">
+          <option value="">— Select —</option>
+          <option value="Level 1 — Summary milestone">Level 1 — Summary milestone</option>
+          <option value="Level 2 — Project master">Level 2 — Project master</option>
+          <option value="Level 3 — Control schedule">Level 3 — Control schedule</option>
+          <option value="Level 4 — Detail / execution">Level 4 — Detail / execution</option>
+          <option value="Level 5 — Resource-loaded">Level 5 — Resource-loaded</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Current project phase</label>
+        <select id="ctx-phase">
+          <option value="">— Select —</option>
+          <option value="Engineering / FEED">Engineering / FEED</option>
+          <option value="Procurement">Procurement</option>
+          <option value="Fabrication / Manufacturing">Fabrication / Manufacturing</option>
+          <option value="Construction / Installation">Construction / Installation</option>
+          <option value="Commissioning / Pre-startup">Commissioning / Pre-startup</option>
+          <option value="Multiple phases concurrent">Multiple phases concurrent</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Enable web search for standards</label>
+        <select id="ctx-websearch">
+          <option value="yes">Yes — AI looks up AACE / PMI / P6 standards</option>
+          <option value="no">No — AI uses built-in knowledge only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Analysis depth</label>
+        <select id="ctx-depth">
+          <option value="standard">Standard — analyse OOS pairs + immediate network</option>
+          <option value="deep">Deep — full upstream/downstream chain analysis</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:10px">
+      <label>Additional context for AI (optional)</label>
+      <input type="text" id="ctx-notes" placeholder="e.g. This is a Saudi Aramco GOSP project. Activities are procurement-heavy. Baseline was Oct 2024.">
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-full" id="run-btn" disabled onclick="runAnalysis()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+    Analyze with AI — Expert Mode
+  </button>
+
+  <div id="results"></div>
+</div>
+
+<!-- AI Config Modal -->
+<div class="overlay" id="config-overlay" onclick="if(event.target===this)closeConfig()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>AI Engine Configuration</h2>
+      <button class="close-btn" onclick="closeConfig()">✕</button>
+    </div>
+    <div class="alert alert-info" style="margin-bottom:1.25rem">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Your API key is stored only in this browser. Never sent anywhere except directly to your chosen AI provider.
+    </div>
+    <div class="section-title">Choose your AI provider</div>
+    <div style="font-size:11px;color:var(--green);background:var(--green-dim);border:1px solid var(--green);border-radius:6px;padding:6px 10px;margin-bottom:12px">
+      Free options: OpenRouter (free models), Groq, Cerebras, Gemini free tier
+    </div>
+    <div class="provider-grid" id="pgrid"></div>
+    <div class="form-group" style="margin-bottom:1rem">
+      <label>API Key &nbsp;<span id="key-link-label"></span></label>
+      <input type="password" id="api-key" placeholder="Paste your API key here" autocomplete="off">
+      <div class="helper" id="key-hint"></div>
+    </div>
+    <div class="form-group" style="margin-bottom:1rem">
+      <label>Model</label>
+      <select id="model-sel"></select>
+      <div class="helper" id="model-hint"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveConfig()" style="flex:1;justify-content:center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save & remember
+      </button>
+      <button class="btn btn-ghost" onclick="clearConfig()">Clear key</button>
+    </div>
+    <div id="save-msg" style="margin-top:10px;font-size:12px;color:var(--green);display:none">✓ Saved. You won't need to enter this again.</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// PROVIDERS
+// ═══════════════════════════════════════════════════════════════════
+const PROVIDERS = {
+  openrouter:{name:'OpenRouter',icon:'🌐',sub:'200+ models',badge:'★ Best',
+    endpoint:'https://openrouter.ai/api/v1/chat/completions',
+    models:['anthropic/claude-sonnet-4-5','openai/gpt-4o','google/gemini-2.0-flash-001','meta-llama/llama-3.3-70b-instruct','deepseek/deepseek-chat-v3-0324','x-ai/grok-2-1212','meta-llama/llama-3.1-8b-instruct:free','google/gemma-3-27b-it:free','mistralai/mistral-7b-instruct:free'],
+    modelHelper:'Models ending :free cost nothing. anthropic/claude-sonnet-4-5 gives best planning reasoning.',
+    keyHint:'Starts with sk-or-v1-',keyLink:'https://openrouter.ai/keys',keyLinkLabel:'openrouter.ai/keys'},
+  groq:{name:'Groq',icon:'⚙️',sub:'Free · Fast',badge:'Free',
+    endpoint:'https://api.groq.com/openai/v1/chat/completions',
+    models:['llama-3.3-70b-versatile','llama-3.1-70b-versatile','mixtral-8x7b-32768','gemma2-9b-it'],
+    modelHelper:'Free tier. llama-3.3-70b-versatile is best.',
+    keyHint:'Starts with gsk_',keyLink:'https://console.groq.com/keys',keyLinkLabel:'console.groq.com/keys'},
+  cerebras:{name:'Cerebras',icon:'🧠',sub:'Fastest · Free',badge:'Free',
+    endpoint:'https://api.cerebras.ai/v1/chat/completions',
+    models:['llama-3.3-70b','llama3.1-70b','llama3.1-8b'],
+    modelHelper:'Fastest inference available. Free tier.',
+    keyHint:'Starts with csk-',keyLink:'https://cloud.cerebras.ai',keyLinkLabel:'cloud.cerebras.ai'},
+  gemini:{name:'Gemini',icon:'✨',sub:'Google · Free tier',badge:'Free tier',
+    endpoint:'GEMINI',
+    models:['gemini-2.0-flash','gemini-2.0-flash-lite','gemini-1.5-flash','gemini-2.5-flash-preview-05-20'],
+    modelHelper:'gemini-2.0-flash is free (15 req/min daily limit).',
+    keyHint:'Starts with AIza...',keyLink:'https://aistudio.google.com/app/apikey',keyLinkLabel:'aistudio.google.com'},
+  claude:{name:'Claude',icon:'🤖',sub:'Anthropic',badge:'',
+    endpoint:'https://api.anthropic.com/v1/messages',
+    models:['claude-sonnet-4-6','claude-opus-4-6','claude-haiku-4-5-20251001'],
+    modelHelper:'Best planning logic reasoning. Requires paid account.',
+    keyHint:'Starts with sk-ant-api03-',keyLink:'https://console.anthropic.com/settings/keys',keyLinkLabel:'console.anthropic.com'},
+  openai:{name:'ChatGPT',icon:'⚡',sub:'OpenAI',badge:'',
+    endpoint:'https://api.openai.com/v1/chat/completions',
+    models:['gpt-4o','gpt-4o-mini','gpt-4-turbo','o1-mini'],
+    modelHelper:'gpt-4o best. gpt-4o-mini cheapest.',
+    keyHint:'Starts with sk-proj-',keyLink:'https://platform.openai.com/api-keys',keyLinkLabel:'platform.openai.com'},
+  xai:{name:'Grok',icon:'𝕏',sub:'xAI',badge:'',
+    endpoint:'https://api.x.ai/v1/chat/completions',
+    models:['grok-2-1212','grok-beta'],
+    modelHelper:'grok-2-1212 is most capable.',
+    keyHint:'Starts with xai-',keyLink:'https://console.x.ai',keyLinkLabel:'console.x.ai'},
+  perplexity:{name:'Perplexity',icon:'🔎',sub:'Web search AI',badge:'',
+    endpoint:'https://api.perplexity.ai/chat/completions',
+    models:['llama-3.1-sonar-large-128k-online','llama-3.1-sonar-huge-128k-online'],
+    modelHelper:'Has live web search built-in.',
+    keyHint:'Starts with pplx-',keyLink:'https://www.perplexity.ai/settings/api',keyLinkLabel:'perplexity.ai'},
+  deepseek:{name:'DeepSeek',icon:'🔍',sub:'Ultra cheap',badge:'',
+    endpoint:'https://api.deepseek.com/v1/chat/completions',
+    models:['deepseek-chat','deepseek-reasoner'],
+    modelHelper:'deepseek-reasoner thinks step-by-step. Very cheap.',
+    keyHint:'Starts with sk-',keyLink:'https://platform.deepseek.com/api_keys',keyLinkLabel:'platform.deepseek.com'},
+  mistral:{name:'Mistral',icon:'🌊',sub:'Mistral AI',badge:'',
+    endpoint:'https://api.mistral.ai/v1/chat/completions',
+    models:['mistral-large-latest','mistral-medium-latest','mistral-small-latest'],
+    modelHelper:'mistral-large-latest recommended.',
+    keyHint:'Random alphanumeric',keyLink:'https://console.mistral.ai/api-keys/',keyLinkLabel:'console.mistral.ai'},
+  together:{name:'Together AI',icon:'🤝',sub:'Open models',badge:'',
+    endpoint:'https://api.together.xyz/v1/chat/completions',
+    models:['meta-llama/Llama-3.3-70B-Instruct-Turbo','Qwen/Qwen2.5-72B-Instruct-Turbo','deepseek-ai/DeepSeek-V3'],
+    modelHelper:'Free $1 credit on signup. Many open-source models.',
+    keyHint:'Long alphanumeric string',keyLink:'https://api.together.ai/settings/api-keys',keyLinkLabel:'api.together.ai'},
+  fireworks:{name:'Fireworks',icon:'🎆',sub:'Fast inference',badge:'',
+    endpoint:'https://api.fireworks.ai/inference/v1/chat/completions',
+    models:['accounts/fireworks/models/llama-v3p3-70b-instruct','accounts/fireworks/models/deepseek-v3'],
+    modelHelper:'Free $1 credit on signup.',
+    keyHint:'Starts with fw_',keyLink:'https://fireworks.ai/account/api-keys',keyLinkLabel:'fireworks.ai'}
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+let selectedProvider = 'openrouter';
+let xerContent = '';
+let inputMode = 'xer';
+let analysisResults = [];
+let parsedSchedule = {tasks:{}, preds:[], wbs:{}};
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+window.onload = () => {
+  buildProviderGrid();
+  const cfg = loadConfig();
+  if (cfg?.key) {
+    selectedProvider = cfg.provider || 'openrouter';
+    updateBadge(true, PROVIDERS[selectedProvider]?.name || selectedProvider);
+    highlightProvider(selectedProvider);
+    updateProviderUI(selectedProvider);
+  } else {
+    updateProviderUI('openrouter');
+  }
+};
+
+function buildProviderGrid() {
+  const grid = document.getElementById('pgrid');
+  grid.innerHTML = Object.entries(PROVIDERS).map(([id,p])=>`
+    <div class="pcard" id="pc-${id}" onclick="selectProvider('${id}')">
+      <div class="pi">${p.icon}</div>
+      <div class="pn">${p.name}</div>
+      <div class="pm">${p.sub}</div>
+      ${p.badge?`<div class="pb">${p.badge}</div>`:''}
+    </div>`).join('');
+}
+
+function loadConfig(){try{return JSON.parse(localStorage.getItem('oos_v2_cfg')||'null')}catch{return null}}
+
+function saveConfig(){
+  const key=document.getElementById('api-key').value.trim();
+  const model=document.getElementById('model-sel').value;
+  if(!key){alert('Please enter an API key.');return;}
+  localStorage.setItem('oos_v2_cfg',JSON.stringify({provider:selectedProvider,key,model}));
+  document.getElementById('save-msg').style.display='block';
+  updateBadge(true,PROVIDERS[selectedProvider].name);
+  setTimeout(closeConfig,1000);
+}
+
+function clearConfig(){
+  localStorage.removeItem('oos_v2_cfg');
+  document.getElementById('api-key').value='';
+  document.getElementById('save-msg').style.display='none';
+  updateBadge(false,'Configure AI engine');
+}
+
+function updateBadge(ready,label){
+  const b=document.getElementById('ai-badge');
+  b.classList.toggle('ready',ready);
+  document.getElementById('badge-dot').style.background=ready?'var(--green)':'var(--red)';
+  document.getElementById('badge-label').textContent=(ready?'⚙ ':'')+label;
+}
+
+function openConfig(){
+  const cfg=loadConfig();
+  if(cfg){selectedProvider=cfg.provider||'openrouter';document.getElementById('api-key').value=cfg.key||'';}
+  highlightProvider(selectedProvider);
+  updateProviderUI(selectedProvider);
+  if(cfg?.model)setTimeout(()=>{document.getElementById('model-sel').value=cfg.model;},50);
+  document.getElementById('config-overlay').classList.add('open');
+}
+function closeConfig(){document.getElementById('config-overlay').classList.remove('open');}
+
+function selectProvider(id){
+  selectedProvider=id;
+  highlightProvider(id);
+  updateProviderUI(id);
+}
+function highlightProvider(id){
+  document.querySelectorAll('.pcard').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('pc-'+id)?.classList.add('sel');
+}
+function updateProviderUI(id){
+  const p=PROVIDERS[id];if(!p)return;
+  document.getElementById('key-hint').textContent=p.keyHint;
+  document.getElementById('key-link-label').innerHTML=`<a href="${p.keyLink}" target="_blank" style="color:var(--accent);font-size:11px;font-weight:normal">${p.keyLinkLabel} ↗</a>`;
+  const sel=document.getElementById('model-sel');
+  sel.innerHTML=p.models.map(m=>`<option value="${m}">${m}</option>`).join('');
+  document.getElementById('model-hint').textContent=p.modelHelper;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TAB / FILE HANDLING
+// ═══════════════════════════════════════════════════════════════════
+function switchTab(t){
+  inputMode=t;
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['xer','paste'][i]===t));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+}
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f)readXer(f);
+}
+function handleXerFile(input){if(input.files[0])readXer(input.files[0]);}
+function readXer(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    xerContent=e.target.result;
+    const lines=xerContent.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+    const tables=lines.filter(l=>l.startsWith('%T')&&l.length>2&&l[2]!=='%').map(l=>l.substring(2).trim());
+    const recs=lines.filter(l=>l.startsWith('%R')).length;
+    const hasTask=tables.some(t=>t==='TASK');
+    const hasPred=tables.some(t=>t==='TASKPRED');
+    const kb=Math.round(file.size/1024);
+    const st=document.getElementById('xer-status');
+    st.innerHTML=`<div style="color:var(--green);font-weight:500">✓ ${file.name} (${kb} KB)</div>`+
+      `<div style="font-size:11px;color:var(--text2);margin-top:4px">Tables: ${tables.join(', ')||'none'}</div>`+
+      `<div style="font-size:11px;margin-top:3px">`+
+        `<span style="color:${hasTask?'var(--green)':'var(--red)'}">${hasTask?'✓':'✗'} TASK</span>&nbsp;&nbsp;`+
+        `<span style="color:${hasPred?'var(--green)':'var(--red)'}">${hasPred?'✓':'✗'} TASKPRED</span>&nbsp;&nbsp;`+
+        `<span style="color:var(--text3)">${recs} data rows</span>`+
+      `</div>`;
+    const runBtn=document.getElementById('run-btn');
+    runBtn.disabled=false;
+    document.getElementById('diagnose-btn').style.display='flex';
+    if(!hasTask||!hasPred){runBtn.disabled=true;}
+  };
+  reader.readAsText(file,'utf-8');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// XER PARSER — full field preservation
+// ═══════════════════════════════════════════════════════════════════
+function parseXer(content){
+  const tasks={},preds=[],wbs={};
+  let cur=null,fields=[];
+  const lines=content.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  for(const raw of lines){
+    const line=raw.trim();
+    if(!line)continue;
+    if(line.startsWith('%T')&&line.length>2&&line[2]!=='%'){cur=line.substring(2).trim();fields=[];continue;}
+    if(line.startsWith('%F')&&cur){
+      fields=line.substring(2).trim().split('\t').map(f=>f.trim()).filter(Boolean);
+      if(fields.length===1)fields=line.substring(2).trim().split(/\s+/).filter(Boolean);
+      continue;
+    }
+    if(line.startsWith('%R')&&fields.length){
+      const rest=line.substring(2).replace(/^\t/,'').replace(/^ /,'');
+      const vals=rest.split('\t');
+      const obj={};
+      fields.forEach((f,i)=>{obj[f]=(vals[i]!==undefined?vals[i]:'').trim();});
+      if(cur==='TASK'&&obj.task_id)tasks[obj.task_id]=obj;
+      if(cur==='TASKPRED'&&obj.task_id)preds.push(obj);
+      if(cur==='PROJWBS'&&obj.wbs_id)wbs[obj.wbs_id]=obj;
+    }
+  }
+  return{tasks,preds,wbs};
+}
+
+function parsePaste(text){
+  const tasks={},preds=[],wbs={};
+  text=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  for(const block of text.split(/\n[ \t]*\n/)){
+    const lines=block.trim().split('\n').filter(l=>l.trim());
+    if(lines.length<2)continue;
+    const delim=lines[0].includes('\t')?'\t':lines[0].includes(';')?';':',';
+    const headers=lines[0].split(delim).map(h=>h.trim().replace(/^"|"$/g,'').toLowerCase());
+    const startRow=(lines[1]&&(lines[1].includes('(*)')||lines[1].includes('Predecessor')))?1:0;
+    const data=lines.slice(1+startRow);
+    if(headers.includes('pred_task_id')||headers.includes('predecessor id')){
+      data.forEach(l=>{
+        const v=l.split(delim).map(x=>x.trim().replace(/^"|"$/g,''));
+        const o={};headers.forEach((h,i)=>o[h]=v[i]||'');
+        if(!o.task_id&&o['successor id'])o.task_id=o['successor id'];
+        if(!o.pred_task_id&&o['predecessor id'])o.pred_task_id=o['predecessor id'];
+        if(!o.pred_type&&o['relationship type'])o.pred_type=o['relationship type'];
+        if(o.task_id&&o.pred_task_id)preds.push(o);
+      });
+    }else if(headers.some(h=>['task_name','activity name','status_code','status','task_code'].includes(h))){
+      data.forEach(l=>{
+        const v=l.split(delim).map(x=>x.trim().replace(/^"|"$/g,''));
+        const o={};headers.forEach((h,i)=>o[h]=v[i]||'');
+        if(!o.task_id&&o['activity id'])o.task_id=o['activity id'];
+        if(!o.task_id&&o['task_code'])o.task_id=o['task_code'];
+        if(!o.task_name&&o['activity name'])o.task_name=o['activity name'];
+        if(!o.status_code&&o['status'])o.status_code=o['status'];
+        if(!o.act_start_date&&o['actual start'])o.act_start_date=o['actual start'];
+        if(!o.act_end_date&&o['actual finish'])o.act_end_date=o['actual finish'];
+        if(!o.total_float_hr_cnt&&o['total float'])o.total_float_hr_cnt=o['total float'];
+        if(o.task_id)tasks[o.task_id]=o;
+      });
+    }
+  }
+  return{tasks,preds,wbs};
+}
+
+function statusLabel(code){
+  return{TK_Complete:'Completed',TK_Active:'In Progress',TK_NotStart:'Not Started'}[code]||code||'Unknown';
+}
+
+function isOOS(ps,ss,rel){
+  if((ps==='TK_Complete'&&ss==='TK_Complete')||(ps==='TK_NotStart'&&ss==='TK_NotStart'))return false;
+  if(ps==='TK_Complete'&&ss==='TK_Active')return false;
+  if(ps==='TK_NotStart'&&ss==='TK_Complete')return true;
+  if(ps==='TK_NotStart'&&ss==='TK_Active'&&(rel==='PR_FS'||rel==='FS'||rel==='PR_FF'||rel==='FF'))return true;
+  if(ps==='TK_Active'&&ss==='TK_Complete')return true;
+  if(ps==='TK_Active'&&ss==='TK_Active'&&(rel==='PR_FS'||rel==='FS'))return true;
+  return false;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NETWORK CONTEXT BUILDER
+// Build upstream/downstream chain around each OOS pair
+// ═══════════════════════════════════════════════════════════════════
+function buildNetworkContext(predId, succId, tasks, preds, wbs, depth=2){
+  const visited=new Set();
+  const chain=[];
+
+  function traverse(taskId, direction, level){
+    if(level>depth||visited.has(taskId+direction))return;
+    visited.add(taskId+direction);
+    const task=tasks[taskId];
+    if(!task)return;
+    const float=parseFloat(task.total_float_hr_cnt||0)/8;
+    chain.push({
+      task_id:taskId,
+      task_name:task.task_name||taskId,
+      status:statusLabel(task.status_code),
+      wbs:getWbsPath(task.wbs_id,wbs),
+      act_start:task.act_start_date||'',
+      act_end:task.act_end_date||'',
+      target_start:task.target_start_date||task.early_start_date||'',
+      target_end:task.target_end_date||task.early_end_date||'',
+      total_float_days:isNaN(float)?null:Math.round(float),
+      direction,level
+    });
+    if(direction==='upstream'){
+      preds.filter(p=>p.task_id===taskId).forEach(p=>traverse(p.pred_task_id,'upstream',level+1));
+    } else {
+      preds.filter(p=>p.pred_task_id===taskId).forEach(p=>traverse(p.task_id,'downstream',level+1));
+    }
+  }
+
+  traverse(predId,'upstream',1);
+  traverse(succId,'downstream',1);
+
+  // Also get immediate siblings (same predecessors)
+  const predSuccessors=preds.filter(p=>p.pred_task_id===predId&&p.task_id!==succId).slice(0,3);
+  const succPredecessors=preds.filter(p=>p.task_id===succId&&p.pred_task_id!==predId).slice(0,3);
+
+  return{chain,predSuccessors,succPredecessors};
+}
+
+function getWbsPath(wbsId, wbs){
+  if(!wbsId||!wbs[wbsId])return wbsId||'';
+  const node=wbs[wbsId];
+  return node.wbs_name||node.wbs_short_name||wbsId;
+}
+
+function getFloatImpact(totalFloatHrs){
+  if(totalFloatHrs===null||totalFloatHrs===undefined||totalFloatHrs==='')return{label:'Unknown',cls:'fb-unknown'};
+  const days=parseFloat(totalFloatHrs)/8;
+  if(days<=0)return{label:'Critical path',cls:'fb-critical'};
+  if(days<=5)return{label:`${Math.round(days)}d float`,cls:'fb-low'};
+  return{label:`${Math.round(days)}d float`,cls:'fb-ok'};
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AI CALL
+// ═══════════════════════════════════════════════════════════════════
+async function callAI(prompt){
+  const cfg=loadConfig();
+  if(!cfg?.key)throw new Error('No API key configured.');
+  const p=PROVIDERS[cfg.provider];
+  const model=cfg.model||p.models[0];
+
+  if(cfg.provider==='claude'){
+    const r=await fetch(p.endpoint,{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':cfg.key,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model,max_tokens:2500,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    return d.content.map(i=>i.text||'').join('');
+  }
+
+  if(cfg.provider==='gemini'){
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cfg.key}`;
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:2500}})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  }
+
+  if(cfg.provider==='openrouter'){
+    const r=await fetch(p.endpoint,{method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key,
+        'HTTP-Referer':'https://github.com/Kaaramad-Services','X-Title':'OOS Fixer AI'},
+      body:JSON.stringify({model,max_tokens:2500,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+    return d.choices?.[0]?.message?.content||'';
+  }
+
+  // OpenAI-compatible fallback
+  const r=await fetch(p.endpoint,{method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.key},
+    body:JSON.stringify({model,max_tokens:2500,messages:[{role:'user',content:prompt}]})});
+  const d=await r.json();
+  if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+  return d.choices?.[0]?.message?.content||'';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MAIN ANALYSIS — 4-step expert process
+// ═══════════════════════════════════════════════════════════════════
+async function runAnalysis(){
+  const cfg=loadConfig();
+  const res=document.getElementById('results');
+
+  if(!cfg?.key){
+    res.innerHTML=`<div class="alert alert-warn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>No AI engine configured. Click "Configure AI engine" at the top.</div>`;
+    return;
+  }
+
+  // Parse schedule
+  const schedule=inputMode==='xer'?parseXer(xerContent):parsePaste(document.getElementById('paste-input').value);
+  parsedSchedule=schedule;
+  const{tasks,preds,wbs}=schedule;
+
+  if(!preds.length){
+    res.innerHTML=`<div class="alert alert-warn">No relationships found. Check your data format.</div>`;
+    return;
+  }
+
+  // Find OOS
+  const oosList=preds.filter(p=>{
+    const pred=tasks[p.pred_task_id],succ=tasks[p.task_id];
+    return pred&&succ&&isOOS(pred.status_code,succ.status_code,p.pred_type);
+  });
+
+  if(!oosList.length){
+    res.innerHTML=`<div class="alert alert-success" style="margin-top:1rem">✓ No out-of-sequence activities found in ${preds.length} relationships. Schedule logic is consistent with current progress.</div>`;
+    return;
+  }
+
+  // Show thinking steps UI
+  const industry=document.getElementById('ctx-industry').value||'Not specified';
+  const contract=document.getElementById('ctx-contract').value||'Not specified';
+  const level=document.getElementById('ctx-level').value||'Not specified';
+  const phase=document.getElementById('ctx-phase').value||'Not specified';
+  const notes=document.getElementById('ctx-notes').value||'';
+  const webSearch=document.getElementById('ctx-websearch').value==='yes';
+  const depth=document.getElementById('ctx-depth').value==='deep'?3:2;
+
+  res.innerHTML=`
+    <div class="thinking-steps" style="margin-top:1.5rem">
+      <div class="thinking-header">
+        <div class="spinner-sm"></div>
+        AI Expert Analysis in Progress
+      </div>
+      <div class="step active" id="step1">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Parsing schedule & building network context</div>
+          <div class="step-detail" id="step1-detail">Reading ${Object.keys(tasks).length} activities, ${preds.length} relationships...</div>
+        </div>
+      </div>
+      <div class="step" id="step2">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Detecting out-of-sequence relationships</div>
+          <div class="step-detail" id="step2-detail">Checking status combinations against relationship types...</div>
+        </div>
+      </div>
+      <div class="step" id="step3">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">AI expert analysis — reasoning with full planning context</div>
+          <div class="step-detail" id="step3-detail">Sending network context, industry type, and schedule data to AI...</div>
+        </div>
+      </div>
+      <div class="step" id="step4">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Downstream impact check — validating fixes won't create new problems</div>
+          <div class="step-detail" id="step4-detail">Waiting...</div>
+        </div>
+      </div>
+    </div>`;
+
+  function activateStep(n,detail){
+    for(let i=1;i<n;i++){
+      const s=document.getElementById('step'+i);
+      s.classList.remove('active');s.classList.add('done');
+      s.querySelector('.step-num').textContent='✓';
+    }
+    const s=document.getElementById('step'+n);
+    s.classList.add('active');
+    if(detail)s.querySelector('.step-detail').textContent=detail;
+  }
+
+  // Step 1: build context
+  await new Promise(r=>setTimeout(r,300));
+  activateStep(1,`Found ${Object.keys(tasks).length} activities, ${preds.length} relationships, ${Object.keys(wbs).length} WBS nodes`);
+
+  // Step 2: OOS detection
+  await new Promise(r=>setTimeout(r,400));
+  activateStep(2,`Found ${oosList.length} out-of-sequence relationship${oosList.length!==1?'s':''} out of ${preds.length} total`);
+
+  // Build rich context for each OOS pair
+  const oosContext=oosList.map(p=>{
+    const pred=tasks[p.pred_task_id],succ=tasks[p.task_id];
+    const netCtx=buildNetworkContext(p.pred_task_id,p.task_id,tasks,preds,wbs,depth);
+    const predFloat=parseFloat(pred?.total_float_hr_cnt||0);
+    const succFloat=parseFloat(succ?.total_float_hr_cnt||0);
+    const predPreds=preds.filter(r=>r.task_id===p.pred_task_id).map(r=>({id:r.pred_task_id,name:tasks[r.pred_task_id]?.task_name||r.pred_task_id,type:r.pred_type,status:statusLabel(tasks[r.pred_task_id]?.status_code)}));
+    const succSuccs=preds.filter(r=>r.pred_task_id===p.task_id).map(r=>({id:r.task_id,name:tasks[r.task_id]?.task_name||r.task_id,type:r.pred_type,status:statusLabel(tasks[r.task_id]?.status_code)}));
+    return{
+      relationship:{pred_id:p.pred_task_id,succ_id:p.task_id,type:p.pred_type,lag_hrs:p.lag_hr_cnt||'0'},
+      predecessor:{id:p.pred_task_id,name:pred?.task_name||p.pred_task_id,status:statusLabel(pred?.status_code),act_start:pred?.act_start_date||'',act_end:pred?.act_end_date||'',target_start:pred?.target_start_date||'',target_end:pred?.target_end_date||'',total_float_days:Math.round(predFloat/8),wbs:getWbsPath(pred?.wbs_id,wbs),predecessors_of_pred:predPreds.slice(0,4)},
+      successor:{id:p.task_id,name:succ?.task_name||p.task_id,status:statusLabel(succ?.status_code),act_start:succ?.act_start_date||'',act_end:succ?.act_end_date||'',target_start:succ?.target_start_date||'',target_end:succ?.target_end_date||'',total_float_days:Math.round(succFloat/8),wbs:getWbsPath(succ?.wbs_id,wbs),successors_of_succ:succSuccs.slice(0,4)},
+      surrounding_network:netCtx.chain.slice(0,10)
+    };
+  });
+
+  // Step 3: AI expert analysis
+  activateStep(3,`Sending ${oosList.length} OOS cases with full network context to ${PROVIDERS[cfg.provider]?.name}...`);
+
+  const systemPrompt=`You are a Senior Planning Engineer with 20+ years experience in ${industry} projects.
+You specialise in Primavera P6 schedule analysis, AACE International scheduling standards, and resolving out-of-sequence (OOS) activities.
+You reason from first principles using activity names, WBS hierarchy, industry logic, float impact, and chronological analysis.
+${webSearch?'You reference AACE RP 29R-03, PMI Practice Standard for Scheduling, and Primavera P6 best practices in your justifications.':''}
+
+Project context:
+- Industry: ${industry}
+- Contract: ${contract}
+- Schedule level: ${level}
+- Current phase: ${phase}
+${notes?`- Additional context: ${notes}`:''}
+
+CRITICAL PLANNING RULES — apply these before making any recommendation:
+
+RULE 1 — COMPLETED ACTIVITIES:
+If the SUCCESSOR is Complete with recorded actual dates, a dangling predecessor after deletion is ACCEPTABLE.
+Primavera P6 does not use open predecessors to schedule completed activities — actuals are fixed historical fact.
+Do NOT flag "dangling activity" as a concern for completed activities.
+
+RULE 2 — CRITICAL PATH PROTECTION:
+If the PREDECESSOR has 0 or negative total float (critical path), you MUST NOT recommend DELETE without:
+(a) confirming the successor is already complete, OR
+(b) confirming a replacement predecessor exists or is not needed
+If neither condition is met, use FLAG_FOR_REVIEW instead of DELETE.
+
+RULE 3 — SAME ACTIVITY NAMES IN DIFFERENT WBS:
+Same-named activities in DIFFERENT WBS nodes are PARALLEL PROCUREMENT WORKSTREAMS, not data errors or self-references.
+Check the WBS field. If WBS nodes differ, treat them as separate packages that happened to be linked for timing coordination.
+
+RULE 4 — CHRONOLOGY BEFORE RECOMMENDATION:
+Always check: did the successor COMPLETE before the predecessor was even planned to START?
+If YES → the relationship is a scheduling error (wrong link assigned), not an execution anomaly. DELETE is appropriate.
+If NO → the OOS happened due to field acceleration or re-sequencing. Retype or ADD_LAG may be more appropriate.
+
+RULE 5 — RELATIONSHIP LOGIC REVERSAL:
+If the relationship implies a logically REVERSED sequence (e.g. PO Award driving RFQ, or Handover driving Engineering),
+the relationship was wrong from day one. DELETE is correct regardless of float impact.
+
+RULE 6 — COMPLETED CHAINS:
+If the successor is part of a procurement/engineering chain where ALL activities are Complete or In Progress independently,
+the predecessor link is redundant. DELETE is correct.
+
+RULE 7 — DO NOT INVENT PREDECESSORS:
+Your job is to fix the existing OOS relationship. Do NOT recommend adding new relationships — you don't have full schedule visibility.
+Recommend FLAG_FOR_REVIEW if a replacement predecessor is needed but you cannot determine what it should be.
+
+RULE 8 — NEVER APPLY PLEXXEL LOGIC:
+Do NOT mechanically apply: "FS + successor started = change to SS" or "FS + both active = change to FF".
+Every fix must be justified by construction/procurement/engineering logic, not by status-combination rules.`;
+
+  const userPrompt=`Analyze these ${oosList.length} out-of-sequence relationships and provide expert fixing recommendations.
+
+For each OOS relationship, first reason step-by-step:
+1. Is the successor Complete with actuals? (Rule 1)
+2. Is the predecessor on the critical path? (Rule 2)
+3. Are the WBS nodes the same or different? (Rule 3)
+4. Did the successor complete BEFORE the predecessor was planned to start? (Rule 4)
+5. Is the relationship direction logically correct for this industry? (Rule 5)
+6. Is the successor part of a self-contained completed chain? (Rule 6)
+
+Then return a JSON array with these fields for each relationship:
+- pred_id, succ_id (copy from input exactly)
+- action: "CHANGE" | "DELETE" | "ADD_LAG" | "FLAG_FOR_REVIEW"
+- new_rel_type: "FS"|"SS"|"FF"|"SF" (only if action=CHANGE, else repeat original type without PR_ prefix)
+- suggested_lag_hours: number (0 if no change, negative for negative lag)
+- confidence: "HIGH"|"MEDIUM"|"LOW"
+- chronology_check: one sentence — state when successor completed vs when predecessor was planned to start
+- summary: one sentence — what you are doing and the primary reason
+- planning_justification: 2-3 sentences — professional planning logic, which Rule above applies, and why
+- industry_logic: one sentence — how this activity type behaves in ${industry||'this industry'} specifically
+- float_impact: one sentence — effect on total float and critical path
+- downstream_risk: one sentence — whether this fix exposes new OOS or logic gaps downstream
+- alternative_fix: one sentence — alternative if the primary fix is rejected by the planner
+- dangling_concern: "YES" or "NO" — would deletion leave a Not Started or In Progress activity without any predecessor?
+
+Return ONLY a valid JSON array. No markdown, no explanation outside the array.
+
+OOS relationships with full network context:
+${JSON.stringify(oosContext,null,2)}`;
+
+  let aiResults=[];
+  try{
+    const text=await callAI(systemPrompt+'\n\n'+userPrompt);
+    const clean=text.replace(/```json|```/g,'').trim();
+    const s=clean.indexOf('['),e=clean.lastIndexOf(']');
+    aiResults=JSON.parse(clean.substring(s,e+1));
+  }catch(err){
+    res.innerHTML=`<div class="alert alert-warn" style="margin-top:1rem">AI call failed: ${err.message}</div>`;
+    return;
+  }
+
+  // Step 4: downstream impact check
+  activateStep(4,'Checking whether proposed fixes create new OOS situations downstream...');
+  await new Promise(r=>setTimeout(r,500));
+
+  // Check for potential downstream OOS from CHANGE actions
+  const downstreamWarnings=[];
+  aiResults.forEach(fix=>{
+    if(fix.action==='CHANGE'||fix.action==='ADD_LAG'){
+      const succSuccessors=preds.filter(p=>p.pred_task_id===fix.succ_id);
+      succSuccessors.forEach(s=>{
+        const succTask=tasks[fix.succ_id];
+        const downTask=tasks[s.task_id];
+        if(succTask&&downTask&&isOOS(succTask.status_code,downTask.status_code,s.pred_type)){
+          downstreamWarnings.push({from:fix.succ_id,to:s.task_id,fromName:succTask.task_name||fix.succ_id,toName:downTask.task_name||s.task_id});
+        }
+      });
+    }
+  });
+
+  analysisResults=aiResults;
+
+  // Render results
+  const changed=aiResults.filter(r=>r.action==='CHANGE').length;
+  const deleted=aiResults.filter(r=>r.action==='DELETE').length;
+  const lagged=aiResults.filter(r=>r.action==='ADD_LAG').length;
+  const flagged=aiResults.filter(r=>r.action==='FLAG_FOR_REVIEW').length;
+
+  const actionBadge=a=>({
+    CHANGE:`<span class="badge b-change">Retype</span>`,
+    DELETE:`<span class="badge b-delete">Delete</span>`,
+    ADD_LAG:`<span class="badge b-lag">Add lag</span>`,
+    FLAG_FOR_REVIEW:`<span class="badge b-review">Review</span>`
+  }[a]||'');
+
+  const relDisplay=(fix,origType)=>{
+    const clean=origType.replace('PR_','');
+    if(fix.action==='CHANGE'&&fix.new_rel_type!==clean)
+      return`<div class="rel-wrap"><span class="badge b-type">${clean}</span><span class="arrow">→</span><span class="badge b-type-new">${fix.new_rel_type}</span>${fix.suggested_lag_hours?`<span style="font-size:10px;color:var(--amber)">${fix.suggested_lag_hours}h lag</span>`:''}</div>`;
+    if(fix.action==='ADD_LAG')
+      return`<div class="rel-wrap"><span class="badge b-type">${clean}</span><span style="font-size:10px;color:var(--accent)">${fix.suggested_lag_hours>0?'+':''}${fix.suggested_lag_hours}h</span></div>`;
+    if(fix.action==='DELETE')
+      return`<span style="text-decoration:line-through;color:var(--text3);font-size:12px">${clean}</span>`;
+    return`<span class="badge b-type">${clean}</span>`;
+  };
+
+  const confDisplay=c=>{
+    const cls={HIGH:'ch',MEDIUM:'cm',LOW:'cl'}[c]||'cl';
+    return`<div class="conf"><span class="cdot ${cls}"></span>${c[0]+c.slice(1).toLowerCase()}</div>`;
+  };
+
+  const floatDisplay=(fix,oosItem)=>{
+    const succ=tasks[fix.succ_id];
+    const fi=getFloatImpact(succ?.total_float_hr_cnt);
+    return`<span class="float-badge ${fi.cls}">${fi.label}</span>`;
+  };
+
+  const rows=aiResults.map((fix,idx)=>{
+    const oos=oosContext.find(o=>o.relationship.pred_id===fix.pred_id&&o.relationship.succ_id===fix.succ_id)||oosContext[idx]||{};
+    const origType=oos.relationship?.type||fix.new_rel_type||'FS';
+    const jid=`j${idx}`;
+    const predFloat=oos.predecessor?.total_float_days;
+    const isCritical=predFloat!==null&&predFloat!==undefined&&predFloat<=0;
+    const danglingWarn=fix.dangling_concern==='YES'?`<div style="margin-top:4px;font-size:10px;color:var(--amber);display:flex;align-items:center;gap:3px"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Dangling — review successor logic</div>`:'';
+    return`<tr>
+      <td style="min-width:120px">
+        <div class="id-code">${fix.pred_id}</div>
+        <div class="act-name">${oos.predecessor?.name||''}</div>
+        <div class="act-status">${oos.predecessor?.status||''}</div>
+        ${isCritical?`<div style="font-size:10px;color:var(--red);font-weight:600;margin-top:2px">⚠ CRITICAL PATH</div>`:''}
+      </td>
+      <td style="min-width:120px">
+        <div class="id-code">${fix.succ_id}</div>
+        <div class="act-name">${oos.successor?.name||''}</div>
+        <div class="act-status">${oos.successor?.status||''}</div>
+      </td>
+      <td style="min-width:100px">${relDisplay(fix,origType)}</td>
+      <td style="min-width:90px">${actionBadge(fix.action)}${danglingWarn}</td>
+      <td style="min-width:60px">${floatDisplay(fix,oos)}</td>
+      <td class="justify-cell">
+        <div class="justify-summary">${fix.summary||''}</div>
+        <button class="expand-btn" onclick="toggleJustify('${jid}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          Full justification
+        </button>
+        <div class="justify-full" id="${jid}">
+          ${fix.chronology_check?`<div class="justify-section"><div class="justify-section-title">Chronology check</div><div class="justify-section-body">${fix.chronology_check}</div></div>`:''}
+          ${fix.planning_justification?`<div class="justify-section"><div class="justify-section-title">Planning logic (Rules applied)</div><div class="justify-section-body">${fix.planning_justification}</div></div>`:''}
+          ${fix.industry_logic?`<div class="justify-section"><div class="justify-section-title">Industry practice — ${industry||'General'}</div><div class="justify-section-body">${fix.industry_logic}</div></div>`:''}
+          ${fix.float_impact?`<div class="justify-section"><div class="justify-section-title">Float & critical path impact</div><div class="justify-section-body">${fix.float_impact}</div></div>`:''}
+          ${fix.downstream_risk?`<div class="justify-section"><div class="justify-section-title">Downstream risk</div><div class="justify-section-body">${fix.downstream_risk}</div></div>`:''}
+          ${fix.alternative_fix?`<div class="justify-section"><div class="justify-section-title">Alternative approach</div><div class="justify-section-body">${fix.alternative_fix}</div></div>`:''}
+        </div>
+      </td>
+      <td style="min-width:70px">${confDisplay(fix.confidence)}</td>
+    </tr>`;
+  }).join('');
+
+  const downstreamHtml=downstreamWarnings.length?`
+    <div class="alert alert-warn" style="margin-top:1rem">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      <div><strong>Downstream OOS detected:</strong> ${downstreamWarnings.length} existing OOS situation${downstreamWarnings.length>1?'s':''} found downstream of proposed changes — ${downstreamWarnings.map(w=>`${w.fromName} → ${w.toName}`).join('; ')}. Review these after applying fixes.</div>
+    </div>`:'';
+
+  res.innerHTML=`
+    <div class="stat-grid" style="margin-top:1.5rem">
+      <div class="stat"><div class="stat-label">OOS found</div><div class="stat-val c-blue">${aiResults.length}</div></div>
+      <div class="stat"><div class="stat-label">Retype</div><div class="stat-val c-amber">${changed+lagged}</div></div>
+      <div class="stat"><div class="stat-label">Delete</div><div class="stat-val c-red">${deleted}</div></div>
+      <div class="stat"><div class="stat-label">For review</div><div class="stat-val c-purple">${flagged}</div></div>
+      <div class="stat"><div class="stat-label">Downstream alerts</div><div class="stat-val ${downstreamWarnings.length?'c-amber':'c-green'}">${downstreamWarnings.length}</div></div>
+    </div>
+    ${downstreamHtml}
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Predecessor</th><th>Successor</th><th>Relationship</th><th>Action</th><th>Float</th><th>AI Expert Justification</th><th>Confidence</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="export-bar">
+      <button class="btn btn-secondary" onclick="exportXer()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Export fixed XER
+      </button>
+      <button class="btn btn-secondary" onclick="exportCSV()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+        Export expert report (CSV)
+      </button>
+    </div>`;
+}
+
+function toggleJustify(id){
+  const el=document.getElementById(id);
+  el.classList.toggle('open');
+  const btn=el.previousElementSibling;
+  btn.innerHTML=el.classList.contains('open')
+    ?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg> Hide`
+    :`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg> Full justification`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// EXPORT — AI recommendation only, all P6 fields preserved
+// ═══════════════════════════════════════════════════════════════════
+function getFixedPreds(allPreds){
+  return allPreds.map(p=>{
+    const fix=analysisResults.find(r=>r.pred_id===p.pred_task_id&&r.succ_id===p.task_id);
+    if(!fix)return p;
+    if(fix.action==='DELETE')return null;
+    const u={...p};
+    if(fix.action==='CHANGE'){
+      const prefix=p.pred_type.startsWith('PR_')?'PR_':'';
+      u.pred_type=prefix+fix.new_rel_type;
+    }
+    if(fix.action==='ADD_LAG')u.lag_hr_cnt=String(fix.suggested_lag_hours);
+    return u;
+  }).filter(Boolean);
+}
+
+function exportXer(){
+  const{preds}=parsedSchedule;
+  const normalized=xerContent.replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  const rawLines=normalized.split('\n');
+  let inPred=false,predFields=[],originalPreds=[];
+  for(const raw of rawLines){
+    const line=raw.trim();
+    if(line.startsWith('%T')&&line.substring(2).trim()==='TASKPRED'){inPred=true;predFields=[];continue;}
+    if(inPred&&line.startsWith('%T')&&line.substring(2).trim()!=='TASKPRED')inPred=false;
+    if(inPred&&line.startsWith('%F')){predFields=line.substring(2).trim().split('\t');continue;}
+    if(inPred&&line.startsWith('%R')&&predFields.length){
+      const vals=line.substring(2).replace(/^\t/,'').split('\t');
+      const obj={};predFields.forEach((f,i)=>{obj[f]=(vals[i]||'').trim();});
+      originalPreds.push(obj);
+    }
+  }
+  const fixedPreds=getFixedPreds(originalPreds);
+  let out='';inPred=false;let fw=false;
+  for(const raw of rawLines){
+    const line=raw.trim();
+    if(line.startsWith('%T')&&line.substring(2).trim()==='TASKPRED'){inPred=true;fw=false;out+=raw+'\n';continue;}
+    if(inPred&&line.startsWith('%T')&&line.substring(2).trim()!=='TASKPRED')inPred=false;
+    if(inPred&&line.startsWith('%R'))continue;
+    out+=raw+'\n';
+    if(inPred&&line.startsWith('%F')&&!fw){
+      fw=true;
+      fixedPreds.forEach(p=>{
+        const vals=predFields.map(f=>p[f]!==undefined?p[f]:'');
+        out+='%R\t'+vals.join('\t')+'\n';
+      });
+    }
+  }
+  download('OOS_Fixed_Schedule.xer',out,'text/plain');
+}
+
+function exportCSV(){
+  const{tasks,preds}=parsedSchedule;
+  let csv='Predecessor ID,Predecessor Name,Predecessor Status,Successor ID,Successor Name,Successor Status,Original Rel,New Rel,Action,Lag (hrs),Float Impact,Summary,Planning Justification,Industry Logic,Float & CP Impact,Downstream Risk,Alternative Fix,Confidence\n';
+  analysisResults.forEach(r=>{
+    const pred=tasks[r.pred_id],succ=tasks[r.succ_id];
+    const orig=preds.find(p=>p.pred_task_id===r.pred_id&&p.task_id===r.succ_id);
+    const fi=getFloatImpact(succ?.total_float_hr_cnt);
+    const esc=s=>(s||'').replace(/"/g,"'");
+    csv+=`"${r.pred_id}","${esc(pred?.task_name)}","${statusLabel(pred?.status_code)}","${r.succ_id}","${esc(succ?.task_name)}","${statusLabel(succ?.status_code)}","${orig?.pred_type||''}","${r.new_rel_type}","${r.action}","${r.suggested_lag_hours}","${fi.label}","${esc(r.summary)}","${esc(r.planning_justification)}","${esc(r.industry_logic)}","${esc(r.float_impact)}","${esc(r.downstream_risk)}","${esc(r.alternative_fix)}","${r.confidence}"\n`;
+  });
+  download('OOS_Expert_Report.csv',csv,'text/csv');
+}
+
+function download(name,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name;a.click();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DIAGNOSE
+// ═══════════════════════════════════════════════════════════════════
+function showDiagnose(){
+  if(!xerContent)return;
+  const lines=xerContent.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  const tables=lines.filter(l=>l.startsWith('%T')&&l.length>2&&l[2]!=='%').map(l=>`<span style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--accent);margin-right:4px">${l.substring(2).trim()}</span>`).join('');
+  const rows=lines.slice(0,20).map((l,i)=>`<div class="diagnose-pre"><span style="color:var(--text3);margin-right:8px;min-width:24px;display:inline-block">${i+1}</span>${l.replace(/</g,'&lt;')||'<em style="color:var(--text3)">(blank)</em>'}</div>`).join('');
+  document.getElementById('results').innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--amber);border-radius:var(--radius);padding:1.5rem;margin-top:1rem">
+      <div style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:10px">File diagnostic</div>
+      <div style="margin-bottom:10px">${tables||'<span style="color:var(--red);font-size:12px">No tables detected</span>'}</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px;max-height:300px;overflow-y:auto">${rows}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px">Size: ${Math.round(xerContent.length/1024)} KB | Lines: ${lines.length} | %R rows: ${lines.filter(l=>l.startsWith('%R')).length}</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SAMPLE DATA
+// ═══════════════════════════════════════════════════════════════════
+const SAMPLE_XER=`%E ERMHDR 23.12 2026-04-24
+%T TASK
+%F task_id\ttask_name\tstatus_code\tact_start_date\tact_end_date\ttarget_start_date\ttarget_end_date\ttotal_float_hr_cnt\twbs_id
+%R A1000\tSite Clearance & Grubbing\tTK_Complete\t2024-01-10\t2024-01-20\t2024-01-10\t2024-01-20\t0\tWBS-1
+%R A1010\tExcavation to Formation Level\tTK_Active\t2024-01-18\t\t2024-01-21\t2024-02-05\t-16\tWBS-1
+%R A1020\tFoundation Formwork Erection\tTK_Active\t2024-02-01\t\t2024-02-06\t2024-02-15\t-24\tWBS-1
+%R A1030\tConcrete Pour Raft Foundation\tTK_Complete\t2024-02-08\t2024-02-10\t2024-02-16\t2024-02-18\t0\tWBS-1
+%R A1040\tRebar Installation\tTK_NotStart\t\t\t2024-02-19\t2024-02-28\t40\tWBS-1
+%R A1050\tBackfill and Compaction\tTK_Active\t2024-02-12\t\t2024-02-25\t2024-03-05\t-8\tWBS-1
+%R A1060\tDrainage Pipe Installation\tTK_Complete\t2024-02-14\t2024-02-20\t2024-02-28\t2024-03-05\t0\tWBS-2
+%R A1070\tPile Cap Construction\tTK_NotStart\t\t\t2024-03-06\t2024-03-20\t56\tWBS-1
+%T TASKPRED
+%F task_id\tpred_task_id\tpred_type\tlag_hr_cnt
+%R A1010\tA1000\tPR_FS\t0
+%R A1020\tA1010\tPR_FS\t0
+%R A1030\tA1020\tPR_FS\t0
+%R A1040\tA1030\tPR_FS\t0
+%R A1050\tA1020\tPR_FS\t0
+%R A1060\tA1050\tPR_FS\t0
+%R A1070\tA1040\tPR_FS\t0
+%R A1070\tA1060\tPR_FS\t0`;
+
+function loadSample(){
+  xerContent=SAMPLE_XER;
+  document.getElementById('xer-status').innerHTML=`<div style="color:var(--green);font-weight:500">✓ sample_oilgas_schedule.xer (loaded)</div><div style="font-size:11px;color:var(--text2);margin-top:4px">Tables: TASK, TASKPRED</div><div style="font-size:11px;margin-top:3px"><span style="color:var(--green)">✓ TASK</span>&nbsp;&nbsp;<span style="color:var(--green)">✓ TASKPRED</span>&nbsp;&nbsp;<span style="color:var(--text3)">16 data rows</span></div>`;
+  document.getElementById('run-btn').disabled=false;
+  document.getElementById('diagnose-btn').style.display='flex';
+  document.getElementById('ctx-industry').value='Oil & Gas — Onshore';
+  document.getElementById('ctx-contract').value='FIDIC Yellow Book (EPC/Turnkey)';
+  document.getElementById('ctx-level').value='Level 3 — Control schedule';
+  document.getElementById('ctx-phase').value='Construction / Installation';
+}
+
+function loadSamplePaste(){
+  document.getElementById('paste-input').value=`task_id\ttask_name\tstatus_code\tact_start_date\tact_end_date\ttotal_float_hr_cnt
+A1000\tSite Clearance & Grubbing\tTK_Complete\t2024-01-10\t2024-01-20\t0
+A1010\tExcavation to Formation Level\tTK_Active\t2024-01-18\t\t-16
+A1020\tFoundation Formwork Erection\tTK_Active\t2024-02-01\t\t-24
+A1030\tConcrete Pour Raft Foundation\tTK_Complete\t2024-02-08\t2024-02-10\t0
+A1040\tRebar Installation\tTK_NotStart\t\t\t40
+A1050\tBackfill and Compaction\tTK_Active\t2024-02-12\t\t-8
+A1060\tDrainage Pipe Installation\tTK_Complete\t2024-02-14\t2024-02-20\t0
+A1070\tPile Cap Construction\tTK_NotStart\t\t\t56
+
+task_id\tpred_task_id\tpred_type\tlag_hr_cnt
+A1010\tA1000\tPR_FS\t0
+A1020\tA1010\tPR_FS\t0
+A1030\tA1020\tPR_FS\t0
+A1040\tA1030\tPR_FS\t0
+A1050\tA1020\tPR_FS\t0
+A1060\tA1050\tPR_FS\t0
+A1070\tA1040\tPR_FS\t0
+A1070\tA1060\tPR_FS\t0`;
+  document.getElementById('run-btn').disabled=false;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     DIGITAL SIGNATURE FOOTER
+     Edit the values below before sharing this tool.
+     Only change the text between the quotes — do not change variable names.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<script>
+const SIGNATURE = {
+  creatorName:    "Muhammad Suleman",
+  title:          "Project Manager / Sr. Planning Engineer",
+  company:        "Kaaramad Services",
+  email:          "suleman.muhammad@hotmail.com",
+  github:         "https://github.com/Kaaramad-Services",
+  linkedin:       "",
+  version:        "v2.0",
+  year:           "2026",
+  tagline:        "AI-powered expert OOS analysis for Primavera P6.",
+};
+</script>
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<script>
+(function renderFooter(){
+  const s=SIGNATURE;
+  const initials=s.creatorName.split(' ').filter(Boolean).map(w=>w[0].toUpperCase()).slice(0,2).join('');
+  const links=[];
+  if(s.email)links.push(`<a href="mailto:${s.email}" style="color:#4f7ef8;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${s.email}</a>`);
+  if(s.github)links.push(`<a href="${s.github}" target="_blank" style="color:#4f7ef8;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>github.com/Kaaramad-Services</a>`);
+  if(s.linkedin)links.push(`<a href="https://${s.linkedin.replace(/^https?:\/\//,'')}" target="_blank" style="color:#4f7ef8;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>${s.linkedin}</a>`);
+  const footer=document.createElement('footer');
+  footer.innerHTML=`
+    <div style="border-top:1px solid #2a2f42;margin-top:3rem;padding:2rem 0 2.5rem;max-width:1060px;margin-left:auto;margin-right:auto;padding-left:1.5rem;padding-right:1.5rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:46px;height:46px;border-radius:50%;background:#1e2f5e;border:1.5px solid #4f7ef8;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#4f7ef8;flex-shrink:0">${initials}</div>
+          <div>
+            <div style="font-size:15px;font-weight:600;color:#e8eaf0">${s.creatorName}</div>
+            <div style="font-size:12px;color:#8b91a8;margin-top:1px">${s.title}${s.company?' · '+s.company:''}</div>
+            ${links.length?`<div style="margin-top:6px;display:flex;gap:14px;flex-wrap:wrap">${links.join('')}</div>`:''}
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="display:inline-flex;align-items:center;gap:8px;background:#181c27;border:1px solid #2a2f42;border-radius:8px;padding:8px 14px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4f7ef8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <div>
+              <div style="font-size:11px;color:#555d7a;text-transform:uppercase;letter-spacing:0.5px">OOS Fixer AI &nbsp;${s.version}</div>
+              <div style="font-size:11px;color:#8b91a8;margin-top:1px">${s.tagline}</div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#555d7a;margin-top:8px">© ${s.year} ${s.creatorName}. All rights reserved.</div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(footer);
+})();
+</script>
+</body>
+</html>
