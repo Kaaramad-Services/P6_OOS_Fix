@@ -208,11 +208,14 @@ tr:hover td{background:rgba(255,255,255,0.02)}
 
   <!-- Input tabs -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('xer')">
+    <button class="tab active" id="tab-xer" onclick="switchTab('xer')">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>XER file
     </button>
-    <button class="tab" onclick="switchTab('paste')">
+    <button class="tab" id="tab-paste" onclick="switchTab('paste')">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>Excel / paste
+    </button>
+    <button class="tab" id="tab-help" onclick="switchTab('help')" style="color:var(--amber)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>How to use
     </button>
   </div>
 
@@ -251,6 +254,175 @@ tr:hover td{background:rgba(255,255,255,0.02)}
     <button class="sample-btn" onclick="loadSamplePaste()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
       Load sample pasted data
+    </button>
+  </div>
+
+  <!-- Help panel -->
+  <div id="panel-help" class="panel">
+
+    <!-- Step 0: mandatory API key warning -->
+    <div style="background:var(--amber-dim);border:2px solid var(--amber);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:12px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--amber);margin-bottom:5px">⚠ Before you start — an API key is required</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.7">
+          This tool uses AI to analyse your schedule. The AI is <strong>not built into this tool</strong> — you must connect it to an AI provider using your own API key.<br><br>
+          An <strong>API key</strong> is a private password that lets this tool talk to the AI on your behalf. Without it, the Analyze button will not work.<br><br>
+          <strong style="color:var(--amber)">The good news: several providers offer completely free API keys — no credit card needed.</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Get a free key -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem">
+      <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--green-dim);border:1.5px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--green);flex-shrink:0">1</div>
+        Get a free API key — choose any one provider below
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="display:block;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;text-decoration:none;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:20px;margin-bottom:6px">✨</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Google Gemini</div>
+          <div style="font-size:11px;color:var(--green);margin-top:2px">Free forever · 15 req/min</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Key starts with: <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--accent)">AIza...</code></div>
+          <div style="font-size:11px;color:var(--accent);margin-top:6px">aistudio.google.com ↗</div>
+        </a>
+        <a href="https://console.groq.com/keys" target="_blank" style="display:block;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;text-decoration:none;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:20px;margin-bottom:6px">⚙️</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Groq</div>
+          <div style="font-size:11px;color:var(--green);margin-top:2px">Free forever · Very fast</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Key starts with: <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--accent)">gsk_...</code></div>
+          <div style="font-size:11px;color:var(--accent);margin-top:6px">console.groq.com ↗</div>
+        </a>
+        <a href="https://cloud.cerebras.ai" target="_blank" style="display:block;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;text-decoration:none;transition:border-color 0.15s" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:20px;margin-bottom:6px">🧠</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Cerebras</div>
+          <div style="font-size:11px;color:var(--green);margin-top:2px">Free forever · Fastest</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Key starts with: <code style="background:var(--bg);padding:1px 5px;border-radius:3px;color:var(--accent)">csk-...</code></div>
+          <div style="font-size:11px;color:var(--accent);margin-top:6px">cloud.cerebras.ai ↗</div>
+        </a>
+      </div>
+      <div style="font-size:11px;color:var(--text3);padding:8px 10px;background:var(--surface2);border-radius:6px">
+        💡 Recommended for first-time users: <strong style="color:var(--text)">Google Gemini</strong> — sign up with your Google account, click "Get API Key", copy the key. Done in under 2 minutes.
+      </div>
+    </div>
+
+    <!-- Step 2: Enter key in tool -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--accent);flex-shrink:0">2</div>
+        Enter your API key into this tool
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:12px">
+        Click the <strong style="color:var(--text)">⚙ Configure AI engine</strong> button at the top right of this page.<br>
+        A settings panel will open. Do the following:
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:6px">
+          <span style="font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;min-width:20px">①</span>
+          <span style="font-size:13px;color:var(--text2)">Click the provider card matching where you got your key (e.g. <strong style="color:var(--text)">Gemini</strong>, <strong style="color:var(--text)">Groq</strong>, or <strong style="color:var(--text)">Cerebras</strong>)</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:6px">
+          <span style="font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;min-width:20px">②</span>
+          <span style="font-size:13px;color:var(--text2)">Paste your API key into the <strong style="color:var(--text)">API Key</strong> field</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:6px">
+          <span style="font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;min-width:20px">③</span>
+          <span style="font-size:13px;color:var(--text2)">Leave the model as default, or pick one from the dropdown</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:6px">
+          <span style="font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;min-width:20px">④</span>
+          <span style="font-size:13px;color:var(--text2)">Click <strong style="color:var(--text)">Save & remember</strong> — the tool stores your key in this browser only. You won't need to enter it again.</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;padding:8px 12px;background:var(--green-dim);border:1px solid var(--green);border-radius:6px;font-size:12px;color:var(--green)">
+        🔒 Your API key never leaves your browser except to go directly to the AI provider. It is not stored on any server.
+      </div>
+    </div>
+
+    <!-- Step 3: Load schedule -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--accent);flex-shrink:0">3</div>
+        Load your Primavera P6 schedule
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="padding:12px;background:var(--surface2);border-radius:8px">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">📄 Option A — XER File (recommended)</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7">
+            In Primavera P6:<br>
+            <strong style="color:var(--text)">File → Export → Primavera PM (XER)</strong><br>
+            Make sure <strong style="color:var(--text)">Activities</strong> and <strong style="color:var(--text)">Activity Relationships</strong> are both ticked.<br>
+            Then drop the <code style="background:var(--bg);padding:1px 4px;border-radius:3px;color:var(--accent)">.xer</code> file onto the upload zone.
+          </div>
+        </div>
+        <div style="padding:12px;background:var(--surface2);border-radius:8px">
+          <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px">📊 Option B — Excel / Paste</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7">
+            Export your TASK and TASKPRED tables from P6 to Excel.<br>
+            Copy both tables, paste into the <strong style="color:var(--text)">Excel / paste</strong> tab.<br>
+            Put a blank line between the two tables.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Set context and run -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px">
+        <div style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);border:1.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--accent);flex-shrink:0">4</div>
+        Set your project context and analyze
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:10px">
+        Fill in the <strong style="color:var(--text)">Project context</strong> section — industry type, contract, schedule level, and phase. This is important: the AI uses this to reason with your industry's specific logic, not generic rules.
+      </div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8">
+        Then click <strong style="color:var(--text)">Analyze with AI — Expert Mode</strong>. The tool will run a 4-step analysis and show you a results table with a recommended fix and full professional justification for every out-of-sequence relationship found.
+      </div>
+    </div>
+
+    <!-- Common errors -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:12px">⚠ Common errors & fixes</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="padding:10px 12px;background:var(--red-dim);border:1px solid var(--red);border-radius:6px">
+          <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:3px">AI call failed: No API key configured</div>
+          <div style="font-size:12px;color:var(--text2)">You haven't set up your API key yet. Go to Step 1 above and get a free key, then follow Step 2 to enter it.</div>
+        </div>
+        <div style="padding:10px 12px;background:var(--red-dim);border:1px solid var(--red);border-radius:6px">
+          <div style="font-size:12px;font-weight:600;color:var(--red);margin-bottom:3px">AI call failed: You exceeded your quota / credits</div>
+          <div style="font-size:12px;color:var(--text2)">Your current provider's free limit was reached. Switch to Groq or Cerebras — both are free with no daily limits for normal use.</div>
+        </div>
+        <div style="padding:10px 12px;background:var(--amber-dim);border:1px solid var(--amber);border-radius:6px">
+          <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:3px">✗ TASK table   ✗ TASKPRED table — 0 data rows</div>
+          <div style="font-size:12px;color:var(--text2)">Your XER export didn't include the required tables. In P6, re-export and make sure both <strong style="color:var(--text)">Activities</strong> and <strong style="color:var(--text)">Activity Relationships</strong> are checked.</div>
+        </div>
+        <div style="padding:10px 12px;background:var(--amber-dim);border:1px solid var(--amber);border-radius:6px">
+          <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:3px">No out-of-sequence activities found</div>
+          <div style="font-size:12px;color:var(--text2)">This means your schedule is clean — no OOS relationships detected. If you expected some, check that your progress update (actual dates and status) has been applied in P6 before exporting.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1rem;text-align:center">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">Found a bug or need help?</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:12px">This tool is in active development. If something doesn't work as expected, please report it.</div>
+      <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+        <a href="mailto:suleman.muhammad@hotmail.com" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--accent-dim);border:1px solid var(--accent);border-radius:6px;color:var(--accent);text-decoration:none;font-size:12px;font-weight:500">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          suleman.muhammad@hotmail.com
+        </a>
+        <a href="https://github.com/Kaaramad-Services" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);text-decoration:none;font-size:12px;font-weight:500">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          github.com/Kaaramad-Services
+        </a>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="switchTab('xer')" style="width:100%;justify-content:center;padding:11px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      Got it — go to XER upload
     </button>
   </div>
 
@@ -469,6 +641,8 @@ window.onload = () => {
     updateProviderUI(selectedProvider);
   } else {
     updateProviderUI('openrouter');
+    // No API key yet — open help tab automatically to guide new users
+    switchTab('help');
   }
 };
 
@@ -541,10 +715,17 @@ function updateProviderUI(id){
 // TAB / FILE HANDLING
 // ═══════════════════════════════════════════════════════════════════
 function switchTab(t){
-  inputMode=t;
-  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['xer','paste'][i]===t));
+  if(t==='xer'||t==='paste') inputMode=t;
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
+  const tabEl=document.getElementById('tab-'+t);
+  if(tabEl) tabEl.classList.add('active');
   document.querySelectorAll('.panel').forEach(el=>el.classList.remove('active'));
   document.getElementById('panel-'+t).classList.add('active');
+  // Hide context card and run button when on help tab
+  const ctx=document.querySelector('.context-card');
+  const runBtn=document.getElementById('run-btn');
+  if(ctx) ctx.style.display = t==='help' ? 'none' : '';
+  if(runBtn) runBtn.style.display = t==='help' ? 'none' : '';
 }
 function handleDrop(e){
   e.preventDefault();
